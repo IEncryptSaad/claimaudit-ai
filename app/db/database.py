@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+from collections.abc import Hashable
 from pathlib import Path
 from typing import Final
 
@@ -61,6 +62,13 @@ def initialize_database(database_path: Path = DATABASE_PATH) -> None:
         raise
 
 
+def _normalize_is_anomaly(value: Hashable) -> int | None:
+    """Convert anomaly flags to SQLite-safe Python integer values."""
+    if pd.isna(value):
+        return None
+    return int(value)
+
+
 def save_claims(df: pd.DataFrame, database_path: Path = DATABASE_PATH) -> int:
     """Persist claims to SQLite using ``claim_id`` as the upsert key.
 
@@ -108,7 +116,7 @@ def save_claims(df: pd.DataFrame, database_path: Path = DATABASE_PATH) -> int:
     if "claim_date" in claims_df:
         claims_df["claim_date"] = claims_df["claim_date"].astype(str)
     if "is_anomaly" in claims_df:
-        claims_df["is_anomaly"] = claims_df["is_anomaly"].astype("Int64", errors="ignore")
+        claims_df["is_anomaly"] = claims_df["is_anomaly"].map(_normalize_is_anomaly)
 
     placeholders = ", ".join("?" for _ in columns)
     update_assignments = ", ".join(

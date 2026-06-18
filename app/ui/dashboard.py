@@ -155,7 +155,10 @@ def render_analytics_charts(scored_df: pd.DataFrame) -> None:
         render_reimbursement_ratio_distribution(scored_df)
 
 
-def render_scored_claims_download(scored_df: pd.DataFrame) -> None:
+def render_scored_claims_download(
+    scored_df: pd.DataFrame,
+    key: str = "scored_claims_report_download",
+) -> None:
     """Render a CSV download button for the scored claims report."""
     csv = scored_df.to_csv(index=False).encode("utf-8")
     st.download_button(
@@ -164,4 +167,5 @@ def render_scored_claims_download(scored_df: pd.DataFrame) -> None:
         "scored_claims_report.csv",
         "text/csv",
         help="Download the validated, transformed, and risk-scored claims dataset.",
+        key=key,
     )
