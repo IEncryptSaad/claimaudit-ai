@@ -1,6 +1,12 @@
 import pandas as pd
 import streamlit as st
 
+from ui.dashboard import (
+    render_analytics_charts,
+    render_kpi_cards,
+    render_scored_claims_download,
+)
+
 from data.generator import generate_synthetic_claims
 from etl.transform import transform_claims
 from etl.validate import validate_claims
@@ -38,24 +44,19 @@ def show_validation_errors(errors: list[str]) -> None:
 
 
 def show_scored_claims(scored_df: pd.DataFrame) -> None:
-    """Render scored claims summary metrics and table."""
-    risk_counts = scored_df["risk_label"].value_counts()
-
-    total_claims = len(scored_df)
-    high_risk_claims = int(risk_counts.get("High", 0))
-    medium_risk_claims = int(risk_counts.get("Medium", 0))
-    low_risk_claims = int(risk_counts.get("Low", 0))
-
+    """Render the scored claims analytics dashboard."""
     st.success("Claims validated, transformed, and scored successfully.")
 
-    metric_columns = st.columns(4)
-    metric_columns[0].metric("Total Claims", total_claims)
-    metric_columns[1].metric("High Risk", high_risk_claims)
-    metric_columns[2].metric("Medium Risk", medium_risk_claims)
-    metric_columns[3].metric("Low Risk", low_risk_claims)
+    try:
+        render_kpi_cards(scored_df)
+        render_analytics_charts(scored_df)
 
-    st.markdown("### Scored Claims")
-    st.dataframe(scored_df, use_container_width=True)
+        st.markdown("### Scored Claims Report")
+        render_scored_claims_download(scored_df)
+        st.dataframe(scored_df, use_container_width=True)
+    except Exception as exc:  # noqa: BLE001
+        st.error("Unable to render the analytics dashboard for these claims.")
+        st.exception(exc)
 
 
 def process_and_render_claims(df: pd.DataFrame) -> pd.DataFrame | None:
@@ -120,14 +121,4 @@ with tab2:
             st.exception(exc)
         else:
             st.success(f"Generated {len(df)} synthetic claims.")
-            scored_demo_df = process_and_render_claims(df)
-
-            download_df = scored_demo_df if scored_demo_df is not None else df
-            csv = download_df.to_csv(index=False).encode("utf-8")
-
-            st.download_button(
-                "Download Demo Dataset",
-                csv,
-                "synthetic_claims.csv",
-                "text/csv"
-            )
+            process_and_render_claims(df)
