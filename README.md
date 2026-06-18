@@ -25,7 +25,7 @@ ClaimAudit AI addresses this problem by providing a consistent audit workflow th
 - **Risk labeling:** Categorize claims into High, Medium, and Low risk tiers.
 - **Dashboard analytics:** View KPI cards, risk distributions, reimbursement patterns, and provider-level high-risk summaries.
 - **Report export:** Download scored claims as a CSV report.
-- **SQLite persistence:** Persist scored claim records for downstream reporting or auditing workflows.
+- **SQLite persistence:** Persist scored claim records for downstream reporting or auditing workflows in the Airflow-compatible DAG path.
 - **Airflow-ready orchestration:** Run the claim audit workflow as a scheduled DAG when Airflow is available.
 - **Docker deployment:** Build and run the Streamlit application in a containerized environment.
 
@@ -167,11 +167,7 @@ Open the application in a browser:
 http://localhost:8501
 ```
 
-For deployments that need persistent SQLite output, mount a host directory to the application data directory:
-
-```bash
-docker run --rm -p 8501:8501 -v "$(pwd)/data:/app/data" claimaudit-ai
-```
+The Docker command starts the Streamlit UI. The UI currently processes uploaded or generated claims for interactive review and CSV export, but it does not write those claims to SQLite. SQLite persistence is currently used by the Airflow-compatible DAG path, which calls the database persistence helpers after scoring claims. If SQLite persistence is wired into the Streamlit UI in the future, mount a host directory to `/app/data` so the database file survives container removal.
 
 ## Future Roadmap
 
