@@ -43,7 +43,10 @@ def show_validation_errors(errors: list[str]) -> None:
         st.warning(error)
 
 
-def show_scored_claims(scored_df: pd.DataFrame) -> None:
+def show_scored_claims(
+    scored_df: pd.DataFrame,
+    download_key: str = "scored_claims_report_download",
+) -> None:
     """Render the scored claims analytics dashboard."""
     st.success("Claims validated, transformed, and scored successfully.")
 
@@ -52,14 +55,17 @@ def show_scored_claims(scored_df: pd.DataFrame) -> None:
         render_analytics_charts(scored_df)
 
         st.markdown("### Scored Claims Report")
-        render_scored_claims_download(scored_df)
+        render_scored_claims_download(scored_df, key=download_key)
         st.dataframe(scored_df, use_container_width=True)
     except Exception as exc:  # noqa: BLE001
         st.error("Unable to render the analytics dashboard for these claims.")
         st.exception(exc)
 
 
-def process_and_render_claims(df: pd.DataFrame) -> pd.DataFrame | None:
+def process_and_render_claims(
+    df: pd.DataFrame,
+    download_key: str = "scored_claims_report_download",
+) -> pd.DataFrame | None:
     """Run the claims pipeline and render results or errors."""
     try:
         scored_df, validation_errors = run_claims_pipeline(df)
@@ -76,7 +82,7 @@ def process_and_render_claims(df: pd.DataFrame) -> pd.DataFrame | None:
         st.error("Claims could not be scored.")
         return None
 
-    show_scored_claims(scored_df)
+    show_scored_claims(scored_df, download_key=download_key)
     return scored_df
 
 
@@ -106,7 +112,9 @@ with tab1:
             st.success(
                 f"Loaded {len(uploaded_df)} claim row(s) from the uploaded file."
             )
-            process_and_render_claims(uploaded_df)
+            process_and_render_claims(
+                uploaded_df, download_key="upload_scored_claims_report_download"
+            )
 
 with tab2:
     st.markdown(
@@ -121,4 +129,6 @@ with tab2:
             st.exception(exc)
         else:
             st.success(f"Generated {len(df)} synthetic claims.")
-            process_and_render_claims(df)
+            process_and_render_claims(
+                df, download_key="demo_scored_claims_report_download"
+            )
