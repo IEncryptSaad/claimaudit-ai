@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ClaimAudit AI local runtime artifacts
+**pycache**/
+.venv/
+*.pyc
+.pytest_cache/
+claims_audit.db
+.streamlit/secrets.toml
